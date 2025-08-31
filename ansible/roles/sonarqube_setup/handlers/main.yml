@@ -1,27 +1,27 @@
 # handlers file for .
 - name: Restart Postgresql
-  systemd:
+  ansible.builtin.systemd:
     name: postgresql
     state: restarted
 
 - name: Start Postgresql
-  systemd:
+  ansible.builtin.systemd:
     name: postgresql
     state: started
-    enabled: yes
+    enabled: true
 
 - name: Enable Postgresql
-  systemd:
+  ansible.builtin.systemd:
     name: postgresql
-    enabled: yes
+    enabled: true
 
 - name: Restart sonar
-  service:
+  ansible.builtin.service:
     name: sonar
     state: restarted
 
 - name: Start sonar
-  service:
+  ansible.builtin.service:
     name: sonar
     state: started
-    enabled: yes
+    enabled: true

@@ -3,9 +3,9 @@
   gather_facts: true
   become: true
   vars_files:
-    - ~/sonarqube/ansible/roles/sonarqube_setup/vars/main.yml
+    - roles/sonarqube_setup/vars/main.yml
   roles:
     - sonarqube_setup
   handlers:
-    - import_tasks: ~/sonarqube/ansible/roles/sonarqube_setup/handlers/main.yml
- 
+    - name: include sonarqube handlers
+      ansible.builtin.import_tasks: roles/sonarqube_setup/handlers/main.yml

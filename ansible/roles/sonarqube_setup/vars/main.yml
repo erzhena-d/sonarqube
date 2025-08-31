@@ -1,13 +1,14 @@
 ---
 # vars file for .
-postgres_root_user: root
-postgres_root_pass: root@123
-my_postgres_user: postgres
-my_postgres_password: postgres
+sonarqube_setup_postgres_root_user: root
+sonarqube_setup_postgres_root_pass: root@123
+sonarqube_setup_my_postgres_user: postgres
+sonarqube_setup_my_postgres_password: postgres
 ansible_effective_user_id: sonar
 ansible_effective_group_id: sonar
-psql_sonar_username: sonar
-psql_sonar_password: sonar
-sonarqube_version: sonarqube-10.6.0.92116
+sonarqube_setup_psql_sonar_username: sonar
+sonarqube_setup_psql_sonar_password: sonar
+sonarqube_setup_version: sonarqube-10.6.0.92116
+
 psql_version: 15
 sonar_web_port: 9000

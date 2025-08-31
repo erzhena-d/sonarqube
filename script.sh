@@ -16,7 +16,7 @@ function prepare_vm() {
 }
 
 function create_ec2() {
-    cd terraform
+    cd terraform || exit
     terraform init
     terraform apply -auto-approve
 }
@@ -26,7 +26,7 @@ function update_ip() {
 }
 
 function install_apps() {
-    cd ../ansible
+    cd ../ansible || exit
     ansible-playbook main.yml
 }
 

@@ -1,5 +1,11 @@
+- name: Update APT repositories and cache on Debian/Ubuntu
+  ansible.builtin.apt:
+    update_cache: yes
+    force_apt_get: yes
+    cache_valid_time: 3600
+
 - name: Install required packages
-  apt:
+  ansible.builtin.apt:
     name:
       - wget
       - python3-psycopg2
@@ -8,31 +14,25 @@
       - python3-pip
     state: latest
 
-- name: Update APT repositories and cache on Debian/Ubuntu
-  apt:
-    update_cache: yes
-    force_apt_get: yes
-    cache_valid_time: 3600
-
 - name: Upgrade all packages
-  apt:
+  ansible.builtin.apt:
     upgrade: dist
     force_apt_get: yes
 
 - name: Set up Postgres 15 repo
-  shell: |
+  ansible.builtin.shell: |
     echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
 - name: Install postgresql
-  apt:
+  ansible.builtin.apt:
     name: postgresql-15
     update_cache: yes
   notify:
     - Start Postgresql
 
 - name: Ensure PostgreSQL is listening on *
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/postgresql/15/main/postgresql.conf
     regexp: '^listen_addresses\s*='
     line: "listen_addresses='*'"
@@ -40,7 +40,7 @@
   notify: Restart Postgresql
 
 - name: Add new configuration to "pg_hba.conf"
-  blockinfile:
+  ansible.builtin.blockinfile:
     dest: /etc/postgresql/15/main/pg_hba.conf
     block: |
       host    all             all             0.0.0.0/0                md5
@@ -50,25 +50,25 @@
 - name: Create a Superuser PostgreSQL database user
   become: true
   become_user: postgres
-  postgresql_user:
-    name: "{{ postgres_root_user }}"
-    password: "{{ postgres_root_pass }}"
+  community.postgresql.postgresql_user:
+    name: "{{ sonarqube_setup_postgres_root_user }}"
+    password: "{{ sonarqube_setup_postgres_root_pass }}"
     role_attr_flags: CREATEDB,SUPERUSER,CREATEROLE
     encrypted: yes
     state: present
 
 - name: Change password for the PostgreSQL user in OS
   ansible.builtin.user:
-    name: "{{ my_postgres_user }}"
+    name: "{{ sonarqube_setup_my_postgres_user }}"
     state: present
-    password: "{{ my_postgres_password | password_hash('sha512') }}"
+    password: "{{ sonarqube_setup_my_postgres_password | password_hash('sha512') }}"
 
 - name: Create Sonar User in PostgreSQL
   become: true
-  become_user: "{{ my_postgres_user }}"
-  postgresql_user:
-    name: "{{ psql_sonar_username }}"
-    password: "{{ psql_sonar_password }}"
+  become_user: "{{ sonarqube_setup_my_postgres_user }}"
+  community.postgresql.postgresql_user:
+    name: "{{ sonarqube_setup_psql_sonar_username }}"
+    password: "{{ sonarqube_setup_psql_sonar_password }}"
     role_attr_flags: CREATEDB,SUPERUSER,CREATEROLE
     encrypted: yes
     login_user: postgres
@@ -77,7 +77,7 @@
     - user-add
 
 - name: Install OpenJDK 17
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     update_cache: yes
   loop:
@@ -85,14 +85,14 @@
 
 - name: Download SonarQube
   ansible.builtin.get_url:
-    url: https://binaries.sonarsource.com/Distribution/sonarqube/{{ sonarqube_version }}.zip
-    dest: /opt/{{ sonarqube_version }}.zip
+    url: https://binaries.sonarsource.com/Distribution/sonarqube/{{ sonarqube_setup_version }}.zip
+    dest: /opt/{{ sonarqube_setup_version }}.zip
   register: get_sonar
   tags:
     - sonar_download
 
 - name: Print the state of Download.
-  debug:
+  ansible.builtin.debug:
     msg: "SonarQube was downloaded"
   when: get_sonar.changed
   tags:
@@ -100,7 +100,7 @@
 
 - name: Extract SonarQube
   ansible.builtin.unarchive:
-    src: /opt/{{ sonarqube_version }}.zip
+    src: /opt/{{ sonarqube_setup_version }}.zip
     dest: /opt
     remote_src: yes
   tags:
@@ -117,13 +117,13 @@
   ansible.builtin.user:
     name: sonar
     group: sonar
-    home: /opt/{{ sonarqube_version }}
+    home: /opt/{{ sonarqube_setup_version }}
   tags:
     - change-ownership-sonar
 
-- name: Recursively change ownership of the /opt/{{ sonarqube_version }} directory
+- name: Recursively change ownership of the /opt/{{ sonarqube_setup_version }} directory
   ansible.builtin.file:
-    path: /opt/{{ sonarqube_version }}
+    path: /opt/{{ sonarqube_setup_version }}
     state: directory
     recurse: yes
     owner: sonar
@@ -132,12 +132,12 @@
     - change-ownership-sonar
 
 - name: SonarQube configuration.
-  blockinfile:
-    path: /opt/{{ sonarqube_version }}/conf/sonar.properties
+  ansible.builtin.blockinfile:
+    path: /opt/{{ sonarqube_setup_version }}/conf/sonar.properties
     state: present
     block: |
-      sonar.jdbc.username={{psql_sonar_username}}
-      sonar.jdbc.password={{psql_sonar_password}}
+      sonar.jdbc.username={{sonarqube_setup_psql_sonar_username}}
+      sonar.jdbc.password={{sonarqube_setup_psql_sonar_password}}
       sonar.web.host=0.0.0.0
       sonar.web.port=9000
       sonar.jdbc.url=jdbc:postgresql://localhost:5432/postgres
@@ -147,7 +147,7 @@
       sonar.path.logs=logs
 
 - name: This file is required for SonarQube to run as a service.
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: /etc/systemd/system/sonar.service
     create: true
     backup: yes
@@ -158,8 +158,8 @@
       After=syslog.target network.target
       [Service]
       Type=forking
-      ExecStart=/opt/{{ sonarqube_version }}/bin/linux-x86-64/sonar.sh start
-      ExecStop=/opt/{{ sonarqube_version }}/bin/linux-x86-64/sonar.sh stop
+      ExecStart=/opt/{{ sonarqube_setup_version }}/bin/linux-x86-64/sonar.sh start
+      ExecStop=/opt/{{ sonarqube_setup_version }}/bin/linux-x86-64/sonar.sh stop
       User=sonar
       Group=sonar
       Restart=always
