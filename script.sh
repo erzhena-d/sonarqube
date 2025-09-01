@@ -21,8 +21,18 @@ function create_ec2() {
     terraform apply -auto-approve
 }
 
+# function update_ip() {
+#     terraform output -raw ec2 > ../ansible/hosts
+# }
+
 function update_ip() {
-    terraform output -raw ec2 > ../ansible/hosts
+    HOST=$(terraform output -raw ec2)
+    cat > ../ansible/hosts <<EOF
+[sonarqube]
+$HOST
+EOF
+    echo "Inventory updated:"
+    cat ../ansible/hosts
 }
 
 function install_apps() {
