@@ -18,6 +18,10 @@ subnet3_cidr    = "10.0.3.0/24"
 ip_on_launch    = true
 instance_type   = "t3.medium"
 
+
+SSH connection is needed, generate key
+AWS Admin or IAM role is needed
+
 Clone the repository:  
 `git clone https://github.com/<your-account>/sonarqube.git && cd sonarqube`
 
@@ -31,6 +35,7 @@ The script will install Terraform and Ansible on your machine (if missing), prov
 
 Access SonarQube:  
 Once the script finishes, open `http://<EC2-PUBLIC-IP>:9000`.
+(by default login and password is admin, admin)
 
 Tear down resources (optional):  
 `cd terraform && terraform destroy -auto-approve`
