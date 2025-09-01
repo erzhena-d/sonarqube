@@ -1,0 +1,87 @@
+- name: Ensure group exists
+  ansible.builtin.group: { name: "{{ sonarqube_group }}" }
+
+- name: Check if user exists
+  ansible.builtin.command: getent passwd {{ sonarqube_user }}
+  register: sonar_user_info
+  changed_when: false
+  failed_when: false
+
+- name: Create sonar user (if absent)
+  ansible.builtin.user:
+    name: "{{ sonarqube_user }}"
+    group: "{{ sonarqube_group }}"
+    home: "{{ sonarqube_home }}"
+    create_home: false
+    shell: /usr/sbin/nologin
+  when: sonar_user_info.rc != 0
+
+- name: Install helpers
+  ansible.builtin.apt:
+    name: [unzip, zip, wget]
+    state: present
+    update_cache: true
+
+- name: Download SonarQube
+  ansible.builtin.get_url:
+    url: "{{ sonarqube_zip_url }}"
+    dest: "/tmp/{{ sonarqube_zip_name }}"
+    mode: "0644"
+    force: false
+
+- name: Unarchive
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ sonarqube_zip_name }}"
+    dest: /opt
+    remote_src: true
+    creates: "/opt/{{ sonarqube_extract_dirname }}"
+
+- name: Move to {{ sonarqube_home }}
+  ansible.builtin.command: "mv /opt/{{ sonarqube_extract_dirname }} {{ sonarqube_home }}"
+  args: { creates: "{{ sonarqube_home }}" }
+
+- name: Fix ownership
+  ansible.builtin.file:
+    path: "{{ sonarqube_home }}"
+    owner: "{{ sonarqube_user }}"
+    group: "{{ sonarqube_group }}"
+    recurse: true
+    state: directory
+
+- name: Sonar.properties
+  ansible.builtin.template:
+    src: sonar.properties.j2
+    dest: "{{ sonarqube_home }}/conf/sonar.properties"
+    owner: "{{ sonarqube_user }}"
+    group: "{{ sonarqube_group }}"
+    mode: "0644"
+
+- name: Set RUN_AS_USER
+  ansible.builtin.lineinfile:
+    path: "{{ sonarqube_home }}/bin/linux-x86-64/sonar.sh"
+    regexp: '^#?RUN_AS_USER='
+    line: "RUN_AS_USER={{ sonarqube_user }}"
+
+- name: Systemd unit
+  ansible.builtin.template:
+    src: sonar.service.j2
+    dest: "/etc/systemd/system/{{ sonarqube_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - daemon-reload
+    - restart sonarqube
+
+- name: Enable & start
+  ansible.builtin.systemd:
+    name: "{{ sonarqube_service_name }}"
+    state: started
+    enabled: true
+
+# handlers внутри роли:
+# roles/sonarqube/handlers/main.yml
+# - name: daemon-reload
+#   ansible.builtin.systemd: { daemon_reload: true }
+# - name: restart sonarqube
+#   ansible.builtin.systemd: { name: "{{ sonarqube_service_name }}", state: restarted, enabled: true }

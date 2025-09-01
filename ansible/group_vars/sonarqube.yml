@@ -1,0 +1,33 @@
+# Java
+java_packages:
+  - openjdk-17-jdk
+
+# DB
+postgresql_packages:
+  - postgresql
+  - postgresql-contrib
+postgresql_service: postgresql
+postgresql_host: "localhost"
+postgresql_port: 5432
+postgres_sonar_db: "sonarqube"
+postgres_sonar_user: "sonar"
+postgres_sonar_password: "ChangeMe_Strong!" # вынеси в Ansible Vault в реальном проекте
+
+# SonarQube
+sonarqube_user: sonar
+sonarqube_group: sonar
+sonarqube_home: /opt/sonarqube
+sonarqube_version: "25.3.0.104237"
+sonarqube_zip_url: "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonarqube_version }}.zip"
+sonarqube_zip_name: "sonarqube-{{ sonarqube_version }}.zip"
+sonarqube_extract_dirname: "sonarqube-{{ sonarqube_version }}"
+sonarqube_service_name: sonar
+sonarqube_listen_host: "0.0.0.0"
+sonarqube_port: 9000
+
+# Kernel/limits
+sysctl_params:
+  vm.max_map_count: 262144
+  fs.file-max: 65536
+limits_nofile: 65536
+limits_nproc: 4096

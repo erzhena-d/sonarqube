@@ -1,0 +1,19 @@
+- name: Apply sysctl params
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+  loop: "{{ sysctl_params | dict2items }}"
+
+- name: Set limits.d for sonarqube user
+  ansible.builtin.copy:
+    dest: /etc/security/limits.d/sonarqube.conf
+    content: |
+      {{ sonarqube_user }} soft nofile {{ limits_nofile }}
+      {{ sonarqube_user }} hard nofile {{ limits_nofile }}
+      {{ sonarqube_user }} soft nproc  {{ limits_nproc }}
+      {{ sonarqube_user }} hard nproc  {{ limits_nproc }}
+    owner: root
+    group: root
+    mode: "0644"

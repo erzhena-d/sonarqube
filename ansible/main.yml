@@ -1,11 +1,9 @@
-- name: SonarQube Setup Playbook
-  hosts: all
-  gather_facts: true
+- hosts: sonarqube
   become: true
-  vars_files:
-    - roles/sonarqube_setup/vars/main.yml
+  gather_facts: true
+
   roles:
-    - sonarqube_setup
-  handlers:
-    - name: include sonarqube handlers
-      ansible.builtin.import_tasks: roles/sonarqube_setup/handlers/main.yml
+    - java
+    - postgresql
+    - sysctl
+    - sonarqube

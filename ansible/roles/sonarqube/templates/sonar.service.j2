@@ -1,0 +1,17 @@
+[Unit]
+Description=SonarQube service
+After=network.target syslog.target
+
+[Service]
+Type=forking
+User={{ sonarqube_user }}
+Group={{ sonarqube_group }}
+ExecStart={{ sonarqube_home }}/bin/linux-x86-64/sonar.sh start
+ExecStop={{ sonarqube_home }}/bin/linux-x86-64/sonar.sh stop
+Restart=always
+LimitNOFILE={{ limits_nofile }}
+LimitNPROC={{ limits_nproc }}
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target
