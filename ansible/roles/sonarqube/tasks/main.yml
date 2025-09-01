@@ -79,6 +79,11 @@
     state: started
     enabled: true
 
+- name: Remove archive
+  ansible.builtin.file:
+    path: "/tmp/{{ sonarqube_zip_name }}"
+    state: absent
+  
 # handlers внутри роли:
 # roles/sonarqube/handlers/main.yml
 # - name: daemon-reload
