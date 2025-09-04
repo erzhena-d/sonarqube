@@ -1,17 +1,11 @@
-data "aws_ami" "ubuntu" {
+data "aws_ami" "sonarqube" {
   most_recent = true
+  owners = ["self"] # fetch data from aws
 
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # fetch data from aws
+#   filter {
+#     name   = "tag:Name"
+#     values = ["my-sonarqube-group2-*"]
+#   }
 }
 
 resource "aws_key_pair" "deployer" {
@@ -20,7 +14,7 @@ resource "aws_key_pair" "deployer" {
 }
 
 resource "aws_instance" "web" {
-  ami                    = data.aws_ami.ubuntu.id #here packer will provide the AMI ID for the created image
+  ami                    = data.aws_ami.sonarqube.id #here packer will provide the AMI ID for the created image
   key_name               = aws_key_pair.deployer.key_name
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
