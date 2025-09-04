@@ -2,6 +2,13 @@
 provider "aws" {
     region = var.region
 }
+terraform {
+  backend "s3" {
+    bucket = "sonar-bucket-erzhena"
+    key    = "terraform.tfstate"
+    region = "us-east-1"
+  }
+}
 
 module vpc {
     source = "../vpc"
