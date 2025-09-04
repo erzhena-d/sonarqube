@@ -84,9 +84,4 @@
     path: "/tmp/{{ sonarqube_zip_name }}"
     state: absent
   
-# handlers внутри роли:
-# roles/sonarqube/handlers/main.yml
-# - name: daemon-reload
-#   ansible.builtin.systemd: { daemon_reload: true }
-# - name: restart sonarqube
-#   ansible.builtin.systemd: { name: "{{ sonarqube_service_name }}", state: restarted, enabled: true }
+

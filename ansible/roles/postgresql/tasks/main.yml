@@ -18,7 +18,7 @@
     state: started
     enabled: true
 
-# Требуется коллекция: ansible-galaxy collection install community.postgresql
+# ansible-galaxy collection install community.postgresql
 - name: Create sonar DB user
   community.postgresql.postgresql_user:
     name: "{{ postgres_sonar_user }}"
