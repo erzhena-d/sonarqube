@@ -43,7 +43,7 @@ jobs:
           aws-region: ${{ inputs.environment }}
       
       - name: Terraform init
-        run: terraform -chdir=terraform/dev init -backend-config=key="${{ inputs.region }}/terraform.tfstate"
+        run: terraform -chdir=terraform/dev init -backend-config=key="${{ inputs.environment }}/terraform.tfstate"
 
       - name: Apply or destroy
         run: |
