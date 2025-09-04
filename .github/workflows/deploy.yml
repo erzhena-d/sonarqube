@@ -3,7 +3,7 @@ name: sonarqube-deployment
 on:
   workflow_dispatch:
     inputs:
-      region:
+      environment:
         description: "AWS region"
         required: true
         type: choice
@@ -23,14 +23,14 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.region }}
+    environment: ${{ inputs.environment }}
 
     steps:
       - name: Git Clone
         uses: actions/checkout@v4
 
-      - name: Run ls to verify directory structure
-        run: ls -la
+      - name: Write tfvars file
+        run: echo "${{ vars.TF_VARS }}" > terraform/dev/terraform.tfvars   
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3  
@@ -40,10 +40,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ inputs.region }}
-      
-      - name: Write tfvars file
-        run: echo "${{ secrets.TF_VARS }}" > terraform/dev/terraform.tfvars     
+          aws-region: ${{ inputs.environment }}
       
       - name: Terraform init
         run: terraform -chdir=terraform/dev init -backend-config=key="${{ inputs.region }}/terraform.tfstate"
