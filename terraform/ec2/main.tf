@@ -1,5 +1,5 @@
-data "aws_ami" "ubuntu" { 
-  most_recent = true 
+data "aws_ami" "ubuntu" {
+  most_recent = true
 
   filter {
     name   = "name"
@@ -24,9 +24,6 @@ resource "aws_instance" "web" {
   key_name               = aws_key_pair.deployer.key_name
   instance_type          = var.instance_type
   subnet_id              = var.subnet_id
-  vpc_security_group_ids = [aws_security_group.allow_tls.id]
+  vpc_security_group_ids = [var.security_group_id]
 }
 
-output "ec2" {
-  value = aws_instance.web.public_ip
-}
