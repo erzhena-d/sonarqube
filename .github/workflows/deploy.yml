@@ -41,7 +41,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.region }}
-
+      
+      - name: Write tfvars file
+        run: echo "${{ secrets.TF_VARS }}" > terraform/dev/terraform.tfvars     
+      
       - name: Terraform init
         run: terraform -chdir=terraform/dev init
 
@@ -49,14 +52,9 @@ jobs:
         run: |
           if [[ "${{ inputs.action }}" == "apply" ]]
           then
-            terraform apply -auto-approve
+            terraform -chdir=terraform/dev apply -auto-approve
           else 
-            terraform destroy -auto-approve
+            terraform -chdir=terraform/dev destroy -auto-approve
           fi  
   
-      # - name: Write tfvars
-      #   run: echo "${{ secrets.TF_VARS }}" > terraform/dev/terraform.tfvars
-      # - name: Terraform init
-      #   run: terraform -chdir=terraform/dev init
-      # - name: Terraform ${{ inputs.action }}
-      #   run: terraform -chdir=terraform/dev ${{ inputs.action }} -auto-approve
+     
